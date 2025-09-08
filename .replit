@@ -1,4 +1,4 @@
-modules = ["nodejs-20"]
+modules = ["vue-node-20", "nodejs-20", "web"]
 [agent]
 expertMode = true
 
@@ -32,3 +32,8 @@ outputType = "webview"
 [[ports]]
 localPort = 5000
 externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["npx", "serve", "-s", "dist", "-l"]
+build = ["npm", "run", "build"]
