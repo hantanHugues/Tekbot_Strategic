@@ -32,25 +32,27 @@
       </div>
     </div>
 
-    <!-- Section principale - 3 panneaux -->
+    <!-- Layout principal optimisé -->
     <div class="supervision-layout">
-      <!-- Panneau Gauche - Carte RViz et Diagnostic -->
-      <div class="left-panel">
-        <!-- Intégration RViz / Carte 2D -->
+      <!-- Zone principale - RViz et Terminal -->
+      <div class="main-workspace">
+        <!-- RViz Container - Grande zone -->
         <div class="card rviz-container">
           <div class="card-header">
-            <h3 class="card-title">Carte ROS / RViz</h3>
+            <h3 class="card-title">🗺️ Carte ROS / RViz</h3>
             <div class="rviz-controls">
               <button class="btn btn-outline btn-sm" @click="refreshRViz">🔄</button>
               <button class="btn btn-outline btn-sm" @click="centerRobot">🎯</button>
               <button class="btn btn-outline btn-sm" @click="toggleRVizMode">
                 {{ rvizMode === 'map' ? '🗺️' : '📷' }}
               </button>
+              <button class="btn btn-outline btn-sm" @click="connectRViz" v-if="!rvizConnected">
+                🔗 Connecter
+              </button>
             </div>
           </div>
           <div class="rviz-display">
             <div v-if="rvizConnected" class="rviz-frame">
-              <!-- Ici s'affichera RViz via WebRTC ou image stream -->
               <iframe 
                 v-if="rvizMode === 'web'"
                 :src="rvizWebUrl" 
@@ -60,77 +62,39 @@
               </iframe>
               <div v-else class="rviz-placeholder">
                 <div class="placeholder-icon">🗺️</div>
-                <p>Carte ROS en cours de chargement...</p>
-                <small>Mode: {{ rvizMode }}</small>
+                <p>Carte ROS - Mode {{ rvizMode }}</p>
+                <small>Position robot en temps réel</small>
               </div>
             </div>
             <div v-else class="rviz-disconnected">
-              <div class="disconnect-icon">❌</div>
-              <p>RViz non connecté</p>
-              <button class="btn btn-primary btn-sm" @click="connectRViz">
-                Connecter RViz
+              <div class="disconnect-icon">📡</div>
+              <h4>RViz non connecté</h4>
+              <p>Connectez RViz pour visualiser la carte et la position du robot</p>
+              <button class="btn btn-primary" @click="connectRViz">
+                🔗 Connecter RViz
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Système de Ping/Diagnostic -->
-        <div class="card ping-system">
+        <!-- Terminal compact en bas -->
+        <div class="card terminal-compact">
           <div class="card-header">
-            <h3 class="card-title">Diagnostic Système</h3>
-            <div class="ping-controls">
-              <button class="btn btn-outline btn-sm" @click="pingAllSystems">
-                🔍 Ping All
-              </button>
-              <button class="btn btn-outline btn-sm" @click="runFullDiagnostic">
-                ⚙️ Diagnostic
-              </button>
-            </div>
-          </div>
-          <div class="ping-grid">
-            <div 
-              v-for="component in systemComponents" 
-              :key="component.name"
-              class="ping-item"
-              :class="component.status"
-              @click="pingComponent(component)"
-            >
-              <div class="ping-icon">{{ component.icon }}</div>
-              <div class="ping-info">
-                <div class="ping-name">{{ component.name }}</div>
-                <div class="ping-details">{{ component.details }}</div>
-              </div>
-              <div class="ping-status">
-                <div class="ping-latency" v-if="component.latency">
-                  {{ component.latency }}ms
-                </div>
-                <div class="ping-indicator" :class="component.status"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Panneau Central - Terminal et Logs -->
-      <div class="center-panel">
-        <!-- Terminal ROS intégré -->
-        <div class="card terminal-container">
-          <div class="card-header">
-            <h3 class="card-title">Terminal ROS</h3>
+            <h3 class="card-title">💻 Terminal ROS</h3>
             <div class="terminal-controls">
-              <button class="btn btn-outline btn-sm" @click="clearTerminal">🗑️</button>
-              <button class="btn btn-outline btn-sm" @click="saveTerminalOutput">💾</button>
               <select v-model="selectedTerminalMode" class="terminal-mode-select">
                 <option value="ros">ROS Commands</option>
                 <option value="system">System Shell</option>
                 <option value="logs">ROS Logs</option>
               </select>
+              <button class="btn btn-outline btn-sm" @click="clearTerminal">🗑️</button>
+              <button class="btn btn-outline btn-sm" @click="saveTerminalOutput">💾</button>
             </div>
           </div>
-          <div class="terminal-display">
-            <div class="terminal-output" ref="terminalOutput">
+          <div class="terminal-display-compact">
+            <div class="terminal-output-compact" ref="terminalOutput">
               <div 
-                v-for="line in terminalLines" 
+                v-for="line in terminalLines.slice(-8)" 
                 :key="line.id"
                 class="terminal-line"
                 :class="line.type"
@@ -154,46 +118,57 @@
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Logs temps réel -->
-        <div class="card logs-container">
+      <!-- Panneau droit - Monitoring et contrôles -->
+      <div class="right-sidebar">
+        <!-- Diagnostic système compact -->
+        <div class="card diagnostic-compact">
           <div class="card-header">
-            <h3 class="card-title">Logs ROS Temps Réel</h3>
-            <div class="logs-controls">
-              <select v-model="selectedLogLevel" class="log-level-filter">
-                <option value="all">Tous</option>
-                <option value="debug">Debug</option>
-                <option value="info">Info</option>
-                <option value="warning">Warning</option>
-                <option value="error">Error</option>
-                <option value="fatal">Fatal</option>
-              </select>
-              <button class="btn btn-outline btn-sm" @click="clearLogs">🗑️</button>
-              <button class="btn btn-outline btn-sm" @click="exportLogs">📤</button>
+            <h3 class="card-title">🔍 Diagnostic</h3>
+            <div class="diagnostic-actions">
+              <button class="btn btn-outline btn-sm" @click="pingAllSystems">Ping All</button>
+              <button class="btn btn-outline btn-sm" @click="runFullDiagnostic">Full Check</button>
             </div>
           </div>
-          <div class="logs-display">
+          <div class="diagnostic-grid">
             <div 
-              v-for="log in filteredLogs" 
-              :key="log.id"
-              class="log-entry"
-              :class="log.level"
+              v-for="component in systemComponents.slice(0, 4)" 
+              :key="component.name"
+              class="diagnostic-item"
+              :class="component.status"
+              @click="pingComponent(component)"
             >
-              <div class="log-timestamp">{{ formatLogTime(log.timestamp) }}</div>
-              <div class="log-level">{{ log.level }}</div>
-              <div class="log-node">{{ log.node }}</div>
-              <div class="log-message">{{ log.message }}</div>
+              <div class="diagnostic-icon">{{ component.icon }}</div>
+              <div class="diagnostic-info">
+                <div class="diagnostic-name">{{ component.name.split(' ')[0] }}</div>
+                <div class="diagnostic-latency" v-if="component.latency">{{ component.latency }}ms</div>
+              </div>
+              <div class="diagnostic-indicator" :class="component.status"></div>
+            </div>
+          </div>
+          <div class="diagnostic-grid">
+            <div 
+              v-for="component in systemComponents.slice(4)" 
+              :key="component.name"
+              class="diagnostic-item"
+              :class="component.status"
+              @click="pingComponent(component)"
+            >
+              <div class="diagnostic-icon">{{ component.icon }}</div>
+              <div class="diagnostic-info">
+                <div class="diagnostic-name">{{ component.name.split(' ')[0] }}</div>
+                <div class="diagnostic-latency" v-if="component.latency">{{ component.latency }}ms</div>
+              </div>
+              <div class="diagnostic-indicator" :class="component.status"></div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Panneau Droit - Monitoring et Actions -->
-      <div class="right-panel">
-        <!-- État des nœuds en temps réel -->
-        <div class="card nodes-monitor">
+        <!-- Nœuds ROS compacts -->
+        <div class="card nodes-compact">
           <div class="card-header">
-            <h3 class="card-title">Nœuds ROS Actifs</h3>
+            <h3 class="card-title">⚙️ Nœuds ROS</h3>
             <div class="nodes-controls">
               <button class="btn btn-outline btn-sm" @click="refreshNodes">🔄</button>
               <div class="auto-refresh-toggle">
@@ -202,80 +177,99 @@
               </div>
             </div>
           </div>
-          <div class="nodes-list">
+          <div class="nodes-list-compact">
             <div 
               v-for="node in activeNodes" 
               :key="node.name"
-              class="node-item"
+              class="node-item-compact"
               :class="node.status"
             >
               <div class="node-icon">{{ getNodeIcon(node.type) }}</div>
-              <div class="node-info">
-                <div class="node-name">{{ node.name }}</div>
-                <div class="node-topics">{{ node.topics?.length || 0 }} topics</div>
+              <div class="node-details">
+                <div class="node-name">{{ node.name.replace('/', '') }}</div>
+                <div class="node-stats">{{ node.hz }}Hz • {{ node.topics?.length || 0 }} topics</div>
               </div>
-              <div class="node-metrics">
-                <div class="node-hz">{{ node.hz || 0 }}Hz</div>
-                <div class="node-status-dot" :class="node.status"></div>
-              </div>
+              <div class="node-status-dot" :class="node.status"></div>
             </div>
           </div>
         </div>
 
-        <!-- Actions rapides -->
-        <div class="card quick-actions">
+        <!-- Actions rapides optimisées -->
+        <div class="card actions-compact">
           <div class="card-header">
-            <h3 class="card-title">Actions Rapides</h3>
+            <h3 class="card-title">⚡ Actions</h3>
           </div>
-          <div class="actions-grid">
-            <button class="action-btn" @click="emergencyStop">
-              🚨 ARRÊT D'URGENCE
+          <div class="actions-grid-compact">
+            <button class="action-btn emergency" @click="emergencyStop">
+              🚨 ARRÊT
             </button>
             <button class="action-btn" @click="robotGoHome">
-              🏠 Robot à la base
+              🏠 Home
             </button>
             <button class="action-btn" @click="calibrateAll">
-              ⚙️ Calibrer tout
+              ⚙️ Calibrer
             </button>
-            <button class="action-btn" @click="requestManualReset">
-              🔄 Reset manuel (-10pts)
-            </button>
-            <button class="action-btn" @click="pauseConveyor">
-              ⏸️ Pause convoyeur
-            </button>
-            <button class="action-btn" @click="restartArm">
-              🥾 Restart bras
+            <button class="action-btn warning" @click="requestManualReset">
+              🔄 Reset (-10pts)
             </button>
           </div>
         </div>
 
-        <!-- Métriques système -->
-        <div class="card system-metrics">
+        <!-- Métriques système optimisées -->
+        <div class="card metrics-compact">
           <div class="card-header">
-            <h3 class="card-title">Métriques Système</h3>
+            <h3 class="card-title">📊 Système</h3>
           </div>
-          <div class="metrics-display">
-            <div class="metric-item">
-              <div class="metric-label">CPU Usage:</div>
+          <div class="metrics-grid">
+            <div class="metric-compact">
+              <div class="metric-label">CPU</div>
               <div class="metric-value">{{ systemMetrics.cpu }}%</div>
               <div class="metric-bar">
                 <div class="metric-fill" :style="{ width: systemMetrics.cpu + '%' }"></div>
               </div>
             </div>
-            <div class="metric-item">
-              <div class="metric-label">RAM Usage:</div>
+            <div class="metric-compact">
+              <div class="metric-label">RAM</div>
               <div class="metric-value">{{ systemMetrics.ram }}%</div>
               <div class="metric-bar">
                 <div class="metric-fill" :style="{ width: systemMetrics.ram + '%' }"></div>
               </div>
             </div>
-            <div class="metric-item">
-              <div class="metric-label">Messages/sec:</div>
-              <div class="metric-value">{{ systemMetrics.messagesPerSec }}</div>
+            <div class="metric-compact">
+              <div class="metric-label">Messages</div>
+              <div class="metric-value">{{ systemMetrics.messagesPerSec }}/s</div>
             </div>
-            <div class="metric-item">
-              <div class="metric-label">Network:</div>
+            <div class="metric-compact">
+              <div class="metric-label">Network</div>
               <div class="metric-value">{{ systemMetrics.network }}KB/s</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Logs compacts -->
+        <div class="card logs-compact">
+          <div class="card-header">
+            <h3 class="card-title">📝 Logs</h3>
+            <div class="logs-controls">
+              <select v-model="selectedLogLevel" class="log-level-filter">
+                <option value="all">Tous</option>
+                <option value="error">Erreurs</option>
+                <option value="warning">Warnings</option>
+                <option value="info">Info</option>
+              </select>
+              <button class="btn btn-outline btn-sm" @click="exportLogs">📤</button>
+            </div>
+          </div>
+          <div class="logs-display-compact">
+            <div 
+              v-for="log in filteredLogs.slice(0, 5)" 
+              :key="log.id"
+              class="log-entry-compact"
+              :class="log.level"
+            >
+              <div class="log-time">{{ formatLogTime(log.timestamp).slice(-8) }}</div>
+              <div class="log-level-badge">{{ log.level.charAt(0).toUpperCase() }}</div>
+              <div class="log-message-compact">{{ log.message }}</div>
             </div>
           </div>
         </div>
@@ -929,38 +923,365 @@ export default {
   color: var(--secondary-color);
 }
 
-/* Layout principal */
+/* Layout principal optimisé */
 .supervision-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 2fr 350px;
   gap: var(--spacing-lg);
   flex: 1;
   min-height: 0;
 }
 
-.left-panel,
-.center-panel,
-.right-panel {
+.main-workspace {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   min-height: 0;
 }
 
-/* RViz Container */
-.rviz-container {
-  flex: 2;
+.right-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.rviz-controls {
+/* RViz Container - optimisé */
+.rviz-container {
+  flex: 1;
+  min-height: 400px;
+}
+
+/* Terminal compact */
+.terminal-compact {
+  height: 200px;
+}
+
+.terminal-display-compact {
+  display: flex;
+  flex-direction: column;
+  height: 150px;
+  background: #1a1a1a;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.terminal-output-compact {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-xs);
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+
+/* Sidebar droite */
+.right-sidebar .card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.right-sidebar .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.right-sidebar .card-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+/* Diagnostic compact */
+.diagnostic-compact {
+  min-height: 160px;
+}
+
+.diagnostic-actions {
   display: flex;
   gap: var(--spacing-xs);
 }
 
+.diagnostic-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+}
+
+.diagnostic-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background: var(--bg-surface);
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+}
+
+.diagnostic-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.diagnostic-item.connected {
+  border-left-color: var(--secondary-color);
+}
+
+.diagnostic-item.warning {
+  border-left-color: var(--warning-color);
+}
+
+.diagnostic-item.disconnected {
+  border-left-color: var(--danger-color);
+  opacity: 0.6;
+}
+
+.diagnostic-icon {
+  font-size: 1rem;
+}
+
+.diagnostic-info {
+  flex: 1;
+}
+
+.diagnostic-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.diagnostic-latency {
+  font-size: 0.6rem;
+  font-family: 'Monaco', 'Menlo', monospace;
+  color: var(--text-muted);
+}
+
+.diagnostic-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.diagnostic-indicator.connected {
+  background: var(--secondary-color);
+}
+
+.diagnostic-indicator.warning {
+  background: var(--warning-color);
+}
+
+.diagnostic-indicator.disconnected {
+  background: var(--danger-color);
+}
+
+/* Nœuds compacts */
+.nodes-compact {
+  min-height: 150px;
+}
+
+.nodes-list-compact {
+  padding: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.node-item-compact {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs);
+  background: var(--bg-surface);
+  border-radius: var(--border-radius-sm);
+  border-left: 2px solid transparent;
+}
+
+.node-item-compact.connected {
+  border-left-color: var(--secondary-color);
+}
+
+.node-item-compact.warning {
+  border-left-color: var(--warning-color);
+}
+
+.node-item-compact.disconnected {
+  border-left-color: var(--danger-color);
+  opacity: 0.6;
+}
+
+.node-details {
+  flex: 1;
+}
+
+.node-name {
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.node-stats {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+/* Actions compactes */
+.actions-compact {
+  min-height: 100px;
+}
+
+.actions-grid-compact {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+}
+
+.action-btn {
+  padding: var(--spacing-xs);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-sm);
+  color: var(--text-primary);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.action-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: var(--primary-color);
+}
+
+.action-btn.emergency {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: var(--danger-color);
+  color: var(--danger-color);
+}
+
+.action-btn.warning {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--warning-color);
+  color: var(--warning-color);
+}
+
+/* Métriques compactes */
+.metrics-compact {
+  min-height: 120px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+}
+
+.metric-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metric-compact .metric-label {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+}
+
+.metric-compact .metric-value {
+  font-family: 'Monaco', 'Menlo', monospace;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.metric-compact .metric-bar {
+  height: 3px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.metric-compact .metric-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
+  transition: width 0.3s ease;
+}
+
+/* Logs compacts */
+.logs-compact {
+  min-height: 140px;
+}
+
+.logs-display-compact {
+  padding: var(--spacing-sm);
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+.log-entry-compact {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  gap: var(--spacing-xs);
+  padding: 2px 0;
+  font-size: 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.log-time {
+  font-family: 'Monaco', 'Menlo', monospace;
+  color: var(--text-muted);
+}
+
+.log-level-badge {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 12px;
+  font-size: 0.5rem;
+  font-weight: bold;
+  color: white;
+}
+
+.log-entry-compact.debug .log-level-badge {
+  background: var(--text-muted);
+}
+
+.log-entry-compact.info .log-level-badge {
+  background: var(--primary-color);
+}
+
+.log-entry-compact.warning .log-level-badge {
+  background: var(--warning-color);
+}
+
+.log-entry-compact.error .log-level-badge {
+  background: var(--danger-color);
+}
+
+.log-message-compact {
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .rviz-display {
   flex: 1;
-  min-height: 300px;
   position: relative;
+  min-height: 350px;
 }
 
 .rviz-frame {
@@ -980,12 +1301,24 @@ export default {
   background: var(--bg-tertiary);
   border-radius: var(--border-radius-md);
   color: var(--text-muted);
+  text-align: center;
+  padding: var(--spacing-lg);
 }
 
 .placeholder-icon,
 .disconnect-icon {
-  font-size: 3rem;
+  font-size: 4rem;
   margin-bottom: var(--spacing-md);
+}
+
+.rviz-disconnected h4 {
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.rviz-disconnected p {
+  margin-bottom: var(--spacing-lg);
+  color: var(--text-secondary);
 }
 
 /* Système de ping */
