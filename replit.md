@@ -6,14 +6,16 @@ TEKBOT Control Center is a desktop application built for the TEKBOT Robotics Cha
 
 ## Recent Changes
 
-**September 08, 2025**: Completed initial application development
+**September 08, 2025**: Completed initial application development with advanced features
 - Implemented modern Vue.js 3 interface with professional dark theme design
 - Created complete Dashboard de Match with real-time monitoring, timer, and score tracking
 - Built comprehensive Calibration Module for LDR sensors and color detection
-- Developed Mission Planning interface with QR code scanning and route optimization
+- Developed advanced Mission Planning interface with intelligent route optimization and strategic analysis
 - Added System Health monitoring with ROS2 node status and diagnostics
 - Integrated ROSLib.js service for ROS2 communication (ready for connection)
 - Configured Electron.js desktop application with proper security and performance settings
+- **NEW**: Created dedicated Match Supervision module with ROS terminal integration and real-time monitoring
+- **NEW**: Enhanced Mission Planning with advanced table filtering, strategic optimization algorithms, and interactive 2D/3D mapping
 
 ## User Preferences
 
