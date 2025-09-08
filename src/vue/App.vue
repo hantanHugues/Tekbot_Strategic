@@ -69,6 +69,7 @@ import DashboardMatch from './components/DashboardMatch.vue'
 import CalibrationModule from './components/CalibrationModule.vue'
 import MissionPlanning from './components/MissionPlanning.vue'
 import SystemHealth from './components/SystemHealth.vue'
+import MatchSupervision from './components/MatchSupervision.vue'
 
 export default {
   name: 'App',
@@ -76,7 +77,8 @@ export default {
     DashboardMatch,
     CalibrationModule,
     MissionPlanning,
-    SystemHealth
+    SystemHealth,
+    MatchSupervision
   },
   setup() {
     const currentView = ref('dashboard')
@@ -85,6 +87,7 @@ export default {
 
     const navigationItems = [
       { id: 'dashboard', label: 'Dashboard Match', icon: '🎯' },
+      { id: 'supervision', label: 'Supervision Match', icon: '🖥️' },
       { id: 'planning', label: 'Planification', icon: '🗺️' },
       { id: 'calibration', label: 'Calibration', icon: '⚙️' },
       { id: 'health', label: 'System Health', icon: '💚' }
@@ -103,6 +106,7 @@ export default {
     const currentComponent = computed(() => {
       const components = {
         'dashboard': 'DashboardMatch',
+        'supervision': 'MatchSupervision',
         'planning': 'MissionPlanning',
         'calibration': 'CalibrationModule',
         'health': 'SystemHealth'
@@ -113,6 +117,7 @@ export default {
     const currentPageTitle = computed(() => {
       const titles = {
         'dashboard': 'Dashboard de Match',
+        'supervision': 'Supervision de Match',
         'planning': 'Planification de Mission',
         'calibration': 'Calibration des Capteurs',
         'health': 'État du Système'
