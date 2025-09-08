@@ -1,0 +1,276 @@
+
+Cahier des Charges (Amélioré) - Application de Contrôle Stratégique et de Supervision pour le TEKBOT Robotics Challenge 2025
+1. Contexte du Projet
+1.1 Description générale
+Développement d'une application de bureau (Electron.js) servant de tour de contrôle centrale pour l'équipe durant le TEKBOT Robotics Challenge 2025. L'application pilotera et supervisera l'ensemble de l'écosystème robotique (robot mobile, station de tri, bras robotique) via ROS2, en fournissant des outils d'aide à la décision, de suivi de score en temps réel et de diagnostic pour maximiser la performance durant chaque match.
+1.2 Architecture Matérielle de l'Écosystème
+Robot Mobile (Robomaster X3) : Chargé de la navigation, du scan des QR Codes et de la collecte des déchets.
+Station de Tri :
+Convoyeur (Arduino/ESP32) : Transporte les déchets vers le bras.
+Bras Robotique (Dofbot Jetson Nano) : Trie les déchets dans les corbeilles.
+Capteurs : Lasers, capteur de couleur.
+
+
+Ordinateur de Contrôle : Héberge l'application Electron.js et le master ROS2.
+2. Objectifs de l'Application
+2.1 Objectif Principal
+Fournir à l'équipe une interface unifiée et intuitive pour planifier, exécuter et analyser chaque match, en transformant les données brutes des capteurs et des robots en informations stratégiques exploitables pour marquer un maximum de points.
+2.2 Objectifs Spécifiques
+Supervision Centralisée : Offrir une vue d'ensemble en temps réel de tous les composants du système.
+Aide à la Décision Stratégique : Aider à la planification de la route de collecte et à la gestion des missions bonus.
+Calculateur de Score en Temps Réel : Estimer le score en direct en fonction des actions réalisées et des pénalités.
+Fiabilisation des Opérations : Fournir des outils de calibration avancés et de diagnostic rapide.
+Contrôle et Commande : Permettre le contrôle manuel (hors match) et le lancement des séquences automatisées.
+3. Spécifications Fonctionnelles
+Module 1 : Phase de Préparation et de Stratégie (Utilisation avant et pendant les 5 min de validation)
+1.1 Dashboard de Validation Système
+Check-list de pré-match : État de connexion de chaque nœud ROS2 (Robot, Convoyeur, Bras), niveau de batterie du robot, statut des capteurs.
+Accès direct au module de calibration.
+1.2 Module de Calibration Avancée (Intègre les specs du convoyeur)
+Calibration des capteurs LDR : Procédure guidée (automatique/manuelle) pour définir les seuils de détection des cubes sur le convoyeur.
+Calibration du capteur de couleur :
+Mode "Apprentissage de couleur" pour enregistrer les signatures RGB/HSV des cubes officiels dans les conditions d'éclairage réelles de la compétition.
+Gestion de profils de calibration (ex: "Éclairage Scène Principale", "Zone d'Entraînement") pour un chargement rapide.
+
+
+1.3 Module de Planification de Mission
+Interface de Scan des Quartiers :
+Le robot mobile, en mode reconnaissance, scanne les QR Codes.
+L'application affiche en temps réel une table des 10 quartiers avec les informations extraites : nom, type, quantité de déchets, types de déchets, points potentiels.
+
+
+Aide à la Planification d'Itinéraire :
+Affichage des quartiers scannés sur une carte 2D de l'arène.
+Outil simple pour ordonner les quartiers à visiter, afin d'optimiser le trajet et de viser les bonus de "zone totalement assainie".
+
+
+Module 2 : Phase de Match (Dashboard de Supervision en Temps Réel - 5 min)
+2.1 Vue d'Ensemble
+Chronomètre Officiel : Décompte des 5 minutes de match, avec des alertes visuelles.
+Calculateur de Score en Direct :
+S'incrémente automatiquement à chaque événement (cube collecté, cube trié, zone assainie).
+Intègre les bonus (temps restant, mission spéciale, parking final).
+Permet l'ajout manuel de pénalités.
+
+
+Journal d'Événements : Log en temps réel de toutes les actions clés ("Cube Ménager trié", "Bonus Zone Commerciale obtenu", "Robot bloqué !").
+2.2 Supervision du Robot Mobile
+Visualisation sur la Carte : Affichage de la position et de l'orientation du robot en temps réel sur la map de l'arène.
+Statut du Robot : Mode actuel (Navigation, Collecte), inventaire des cubes transportés.
+Suivi des Missions Bonus :
+Affiche le "quartier infecté" désigné par les juges.
+Indicateur de progression pour le bonus de parking final.
+
+
+2.3 Supervision de la Station de Tri
+Statut du Convoyeur : En marche / à l'arrêt, indicateurs visuels des lasers.
+Dernier Objet Détecté : Affiche la couleur du dernier cube analysé par le capteur de couleur.
+Statut du Bras Robotique : Inactif / En mouvement / En saisie.
+Compteur de Tri : Décompte du nombre de cubes de chaque type correctement triés.
+Module 3 : Gestion des Incidents et Interventions
+Alerte "Robot Bloqué" : Une notification visuelle et sonore se déclenche si le robot est immobile depuis plus de 20 secondes.
+Bouton "Demande de Réinitialisation" : Permet de signaler une demande d'intervention manuelle. Un clic sur ce bouton déduit automatiquement 10 points du score live, conformément aux règles.
+4. Spécifications Techniques
+4.1 Architecture Logicielle Globale
+   [Application Electron.js - Tour de Contrôle]
+        ↕ (roslibjs via WebSocket)
+[Nœud ROS2 - Bridge]
+        ↕ (Topics & Services ROS2)
++------------------+--------------------+------------------+
+| [robot_node]     | [conveyor_node]    | [arm_node]       |
+| (Robomaster X3)  | (ESP32)            | (Jetson Nano)    |
++------------------+--------------------+------------------+
+ 
+4.2 Communication ROS2 (Étendue)
+4.2.1 Topics ROS2
+/robot/odom (nav_msgs/Odometry) : Position du robot.
+/robot/battery_state (sensor_msgs/BatteryState) : Niveau de batterie.
+/robot/qr_scan_result (custom_msgs/QuartierInfo) : Données d'un quartier scanné.
+/game/score (std_msgs/Int32) : Score actuel.
+/game/timer (std_msgs/Float32) : Temps restant.
+(Conservés) /conveyor/sensor/color, /conveyor/motor/status, etc.
+/arm/status (std_msgs/String) : État du bras robotique.
+/tri/cube_sorted (custom_msgs/SortedWaste) : Confirme qu'un déchet a été trié.
+4.2.2 Services ROS2
+/robot/go_to_target (custom_srv/SetNavigationGoal) : Envoyer le robot vers un quartier.
+/robot/start_qr_scan (std_srvs/Trigger) : Lancer la phase de reconnaissance.
+(Conservés) /conveyor/calibrate_ldr, /conveyor/learn_color, etc.
+/arm/pick_and_place (custom_srv/SortWaste) : Ordonner au bras de trier le cube présent.
+4.3 Technologies
+Frontend : Electron.js, Vue.js 3 ou React.
+Communication ROS : roslibjs.
+Base de Données (locale) : SQLite pour les profils de calibration et les logs de match ou simplement du json .
+Visualisation : Chart.js pour les stats post-match, une librairie de canvas HTML5 pour la carte 2D.
+5. Interface Utilisateur - Maquettes (Étendues)
+5.1 Écran Principal (Dashboard de Match)
+Zone Gauche (Stratégie) : Carte de l'arène avec position du robot, liste des quartiers à visiter, et suivi des bonus de zone.
+Zone Centrale (Statut Live) : Gros chronomètre, score en temps réel, log des événements importants.
+Zone Droite (Supervision Matérielle) : Indicateurs visuels pour le robot (batterie), le convoyeur (lasers, couleur détectée), et le bras (statut).
+5.2 Écran de Calibration
+Interface unifiée avec des onglets : "Convoyeur - Lasers", "Convoyeur - Couleurs".
+Assistant guidé pour chaque calibration avec visualisation des données des capteurs en temps réel.
+6. Phases de Développement (Re-séquencées)
+Phase 1 : Noyau et Communication (3 semaines) : Setup de l'application, du bridge ROS2, et communication basique avec chaque nœud (ping, statut).
+Phase 2 : Développement des Modules Matériels (4 semaines) : Intégration complète du convoyeur (avec calibration) et du robot mobile (contrôle, odométrie).
+Phase 3 : Intelligence et Stratégie (3 semaines) : Développement du module de scan QR, de la carte, et du calculateur de score. Intégration du bras robotique.
+Phase 4 : Tests, Finalisation et Robustesse (2 semaines) : Tests d'intégration complets simulant des matchs réels. Optimisation de l'UI et correction de bugs.
+7. Critères de Validation (Alignés sur le Jeu)
+Précision du Score : Le score calculé par l'application doit correspondre à 100% au décompte manuel des arbitres à la fin du match.
+Réactivité : La latence entre une action (ex: cube détecté) et sa mise à jour sur l'interface doit être inférieure à 200 ms.
+Fiabilité : L'application doit fonctionner sans crash pendant toute la durée d'un match. La calibration doit garantir un taux de détection de cubes/couleurs supérieur à 98%.
+Usabilité : Un membre de l'équipe doit pouvoir comprendre et utiliser les fonctions principales du dashboard de match après 10 minutes de formation.
+8. Livrables
+Application Electron.js packagée pour Windows/Linux.
+Ensemble des Nœuds ROS2 documentés pour : le robot mobile, le convoyeur, et le bras robotique.
+Code embarqué (Arduino/ESP32).
+Documentation utilisateur complète de l'application de contrôle.
+Guide d'installation et de déploiement de l'écosystème complet.
+
+
+
+
+
+
+
+
+
+Document 2 : Cahier des Charges - Frontend (Application de Contrôle Stratégique)
+Projet : Interface de Contrôle et de Supervision pour le TEKBOT Robotics Challenge 2025
+Technologie : Electron.js
+1. Objectif Principal
+Créer une application de bureau servant de tableau de bord stratégique pour l'équipe. L'application doit permettre la planification avant-match, la supervision en temps réel et le diagnostic, en communiquant exclusivement via des messages ROS2 avec le backend. Elle n'embarque aucune logique de contrôle matériel.
+2. Spécifications Fonctionnelles
+Module 1 : Écrans de Préparation et de Calibration
+Écran "System Health" :
+Affiche une liste des nœuds ROS2 attendus (robot, convoyeur, bras).
+Affiche un indicateur de statut (Connecté / Déconnecté) pour chaque nœud en se basant sur un topic de "heartbeat".
+Affiche la valeur reçue du topic /robot/battery_state.
+
+
+Écran "Calibration de la Station de Tri" :
+Calibration LDR :
+Affiche les valeurs brutes reçues en temps réel des topics /conveyor/sensor/ldr_front/raw_value et /conveyor/sensor/ldr_back/raw_value.
+Possède des boutons "Calibrer 'Présence'" et "Calibrer 'Absence'" qui appellent le service ROS2 /conveyor/calibrate_ldr.
+Permet un ajustement manuel des seuils via des sliders, qui appellent le même service avec des paramètres.
+
+
+Calibration Couleur :
+Affiche les valeurs RGB/HSV brutes reçues du topic /conveyor/sensor/color.
+Possède un champ de texte "Nom de la couleur" et un bouton "Apprendre cette couleur" qui appellent le service ROS2 /conveyor/learn_color.
+Affiche la liste des couleurs apprises en appelant le service /conveyor/get_color_profiles.
+
+
+
+
+Module 2 : Écran de Planification de Mission
+Interface de Scan QR :
+Affiche une table qui se remplit dynamiquement en écoutant le topic /robot/qr_scan_result. Chaque message reçu ajoute une ligne (nom, type, points, etc.).
+
+
+Carte Stratégique 2D :
+Affiche une image de fond représentant l'arène de jeu.
+Place des icônes sur la carte correspondant aux quartiers scannés.
+Permet à l'utilisateur de cliquer sur les icônes pour créer une séquence de visite. L'ordre est stocké localement dans l'application.
+
+
+Module 3 : Écran Principal "Dashboard de Match"
+Chronomètre et Score :
+Affiche la valeur reçue en temps réel du topic /game/timer.
+Affiche la valeur reçue en temps réel du topic /game/score.
+
+
+Journal d'Événements :
+Affiche une liste de messages formatés en écoutant le topic /game/log.
+
+
+Carte de Suivi en Direct :
+Affiche la carte de l'arène.
+Met à jour la position et l'orientation d'une icône représentant le robot en écoutant le topic /robot/odom.
+
+
+Panel de Supervision Matérielle :
+Affiche le statut du convoyeur (Marche/Arrêt) en écoutant /conveyor/motor/status.
+Affiche le nom de la couleur détectée en écoutant /tri/color_detected.
+Affiche le statut du bras robotique en écoutant /arm/status.
+
+
+Bouton d'Intervention :
+Un bouton "Demander Réinitialisation" qui appelle le service ROS2 /game/request_manual_reset.
+
+
+3. Spécifications Techniques
+Framework : Electron.js
+Librairie UI : Vue.js 3 ou React
+Communication ROS2 : roslibjs (connexion via WebSocket au ros2-web-bridge).
+Dépendances : Chart.js (pour stats post-match), une librairie de base de données locale (ex: electron-store) pour sauvegarder les configurations de l'UI.
+Interface avec le Backend : L'application est un client pur. Elle ne fait que s'abonner à des topics pour afficher des données et appeler des services pour déclencher des actions.
+
+Document 3 : Cahier des Charges - Backend (Nœuds ROS2)
+Projet : Logique de Contrôle et Interface Matérielle pour le TEKBOT Robotics Challenge 2025
+Technologie : ROS2 (Python ou C++)
+1. Objectif Principal
+Développer un ensemble de nœuds ROS2 robustes et indépendants qui gèrent toute la logique de contrôle du robot mobile, de la station de tri et les règles du jeu. Ces nœuds exposent une API claire via des topics et services pour être pilotés et supervisés par une application frontend.
+2. Architecture des Nœuds ROS2
+Nœud 1 : game_controller_node (Le Cerveau du Jeu)
+Rôle : Gère la logique du match, le score et le temps.
+Publications :
+/game/timer (std_msgs/Float32) : Publie le temps restant du match chaque seconde.
+/game/score (std_msgs/Int32) : Publie le score total mis à jour à chaque événement de point.
+/game/log (std_msgs/String) : Publie des messages textuels pour le journal d'événements.
+
+
+Abonnements :
+/tri/cube_sorted : Pour ajouter des points quand un cube est trié.
+/robot/zone_cleared : Pour ajouter les bonus de zone.
+... et tous les autres topics qui génèrent des points.
+
+
+Services :
+/game/request_manual_reset (std_srvs/Trigger) : Reçoit la demande du frontend, soustrait 10 points du score et publie un log.
+
+
+Nœud 2 : robot_controller_node (Le Pilote)
+Rôle : Contrôle le robot Robomaster X3, sa navigation et ses capteurs.
+Publications :
+/robot/odom (nav_msgs/Odometry) : Publie la position/orientation du robot.
+/robot/battery_state (sensor_msgs/BatteryState) : Publie le niveau de la batterie.
+/robot/qr_scan_result (custom_msgs/QuartierInfo) : Publie les détails d'un quartier après un scan réussi.
+/robot/zone_cleared (std_msgs/String) : Publie le nom d'une zone quand tous ses quartiers ont été vidés.
+
+
+Services :
+/robot/go_to_target (custom_srv/SetNavigationGoal) : Reçoit une cible de navigation et pilote le robot.
+/robot/start_qr_scan (std_srvs/Trigger) : Met le robot en mode de recherche de QR Codes.
+
+
+Nœud 3 : conveyor_controller_node (L'Opérateur du Convoyeur)
+Rôle : Interface avec le microcontrôleur (ESP32) du convoyeur. Gère la logique de détection et de calibration.
+Publications :
+/conveyor/motor/status (std_msgs/Bool) : Publie l'état du moteur.
+/conveyor/sensor/ldr_front/raw_value, /conveyor/sensor/ldr_back/raw_value (std_msgs/Float32) : Publie les lectures brutes des LDR pour la calibration.
+/conveyor/sensor/color (sensor_msgs/PointCloud) : Publie les données brutes du capteur de couleur.
+/tri/color_detected (std_msgs/String) : Publie le nom de la couleur identifiée après classification.
+
+
+Services :
+/conveyor/calibrate_ldr (custom_srv/CalibrateLDR) : Reçoit les commandes de calibration, effectue les mesures et stocke les seuils.
+/conveyor/learn_color (custom_srv/LearnColor) : Reçoit un nom et les données couleur actuelles, puis les enregistre dans un profil.
+/conveyor/get_color_profiles (custom_srv/GetColorProfiles) : Renvoie la liste des couleurs apprises.
+
+
+Nœud 4 : arm_controller_node (Le Trieur)
+Rôle : Contrôle le bras robotique Dofbot.
+Publications :
+/arm/status (std_msgs/String) : Publie son état actuel (ex: "IDLE", "MOVING_TO_PICK", "SORTING_RED").
+/tri/cube_sorted (custom_msgs/SortedWaste) : Publie un message de confirmation chaque fois qu'un cube est placé avec succès dans une corbeille.
+
+
+Abonnements :
+/tri/color_detected : S'abonne à ce topic pour savoir quel type de cube arrive et préparer le tri.
+
+
+3. Messages et Services Personnalisés (API ROS2)
+Définir clairement tous les messages (.msg) et services (.srv) personnalisés. C'est le contrat d'interface entre le frontend et le backend.
+Exemples : QuartierInfo.msg, SortedWaste.msg, CalibrateLDR.srv, etc.
+En suivant cette séparation, l'équipe frontend peut développer et tester l'interface utilisateur en utilisant des nœuds ROS2 "mock" qui simulent le comportement du matériel, tandis que l'équipe backend peut développer et tester la logique robotique en utilisant des outils comme rqt ou des scripts en ligne de commande, sans dépendre de l'interface graphique finale. L'intégration finale consistera simplement à connecter les deux parties via le ros2-web-bridge.
+
