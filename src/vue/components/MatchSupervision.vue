@@ -926,7 +926,7 @@ export default {
 /* Layout principal optimisé */
 .supervision-layout {
   display: grid;
-  grid-template-columns: 2fr 350px;
+  grid-template-columns: 1fr 380px;
   gap: var(--spacing-lg);
   flex: 1;
   min-height: 0;
@@ -935,33 +935,35 @@ export default {
 .main-workspace {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   min-height: 0;
 }
 
 .right-sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   min-height: 0;
   overflow-y: auto;
+  padding-right: var(--spacing-xs);
 }
 
 /* RViz Container - optimisé */
 .rviz-container {
-  flex: 1;
-  min-height: 400px;
+  flex: 2;
+  min-height: 450px;
 }
 
 /* Terminal compact */
 .terminal-compact {
-  height: 200px;
+  height: 250px;
+  flex-shrink: 0;
 }
 
 .terminal-display-compact {
   display: flex;
   flex-direction: column;
-  height: 150px;
+  height: 200px;
   background: #1a1a1a;
   border-radius: var(--border-radius-md);
   overflow: hidden;
@@ -970,10 +972,10 @@ export default {
 .terminal-output-compact {
   flex: 1;
   overflow-y: auto;
-  padding: var(--spacing-xs);
+  padding: var(--spacing-sm);
   font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 0.7rem;
-  line-height: 1.3;
+  font-size: 0.75rem;
+  line-height: 1.4;
 }
 
 /* Sidebar droite */
@@ -982,19 +984,20 @@ export default {
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-md);
   overflow: hidden;
+  min-height: fit-content;
 }
 
 .right-sidebar .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--spacing-md);
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-color);
 }
 
 .right-sidebar .card-title {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0;
@@ -1002,31 +1005,32 @@ export default {
 
 /* Diagnostic compact */
 .diagnostic-compact {
-  min-height: 160px;
+  min-height: 200px;
 }
 
 .diagnostic-actions {
   display: flex;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 .diagnostic-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
 }
 
 .diagnostic-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
   background: var(--bg-surface);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   cursor: pointer;
   transition: all 0.2s;
-  border-left: 2px solid transparent;
+  border-left: 3px solid transparent;
+  min-height: 50px;
 }
 
 .diagnostic-item:hover {
@@ -1055,20 +1059,20 @@ export default {
 }
 
 .diagnostic-name {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .diagnostic-latency {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-family: 'Monaco', 'Menlo', monospace;
   color: var(--text-muted);
 }
 
 .diagnostic-indicator {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 
@@ -1086,24 +1090,25 @@ export default {
 
 /* Nœuds compacts */
 .nodes-compact {
-  min-height: 150px;
+  min-height: 180px;
 }
 
 .nodes-list-compact {
-  padding: var(--spacing-sm);
+  padding: var(--spacing-md);
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 .node-item-compact {
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
   background: var(--bg-surface);
-  border-radius: var(--border-radius-sm);
-  border-left: 2px solid transparent;
+  border-radius: var(--border-radius-md);
+  border-left: 3px solid transparent;
+  min-height: 45px;
 }
 
 .node-item-compact.connected {
@@ -1124,38 +1129,42 @@ export default {
 }
 
 .node-name {
-  font-size: 0.7rem;
+  font-size: 0.8rem;
   font-weight: 500;
   color: var(--text-primary);
 }
 
 .node-stats {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
 /* Actions compactes */
 .actions-compact {
-  min-height: 100px;
+  min-height: 120px;
 }
 
 .actions-grid-compact {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
 }
 
 .action-btn {
-  padding: var(--spacing-xs);
+  padding: var(--spacing-sm);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-sm);
+  border-radius: var(--border-radius-md);
   color: var(--text-primary);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s;
   text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .action-btn:hover {
@@ -1177,30 +1186,31 @@ export default {
 
 /* Métriques compactes */
 .metrics-compact {
-  min-height: 120px;
+  min-height: 140px;
 }
 
 .metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
 }
 
 .metric-compact {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: var(--spacing-xs);
+  min-height: 50px;
 }
 
 .metric-compact .metric-label {
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
 .metric-compact .metric-value {
   font-family: 'Monaco', 'Menlo', monospace;
-  font-size: 0.75rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -1220,22 +1230,24 @@ export default {
 
 /* Logs compacts */
 .logs-compact {
-  min-height: 140px;
+  min-height: 160px;
 }
 
 .logs-display-compact {
-  padding: var(--spacing-sm);
-  max-height: 100px;
+  padding: var(--spacing-md);
+  max-height: 120px;
   overflow-y: auto;
 }
 
 .log-entry-compact {
   display: grid;
   grid-template-columns: auto auto 1fr;
-  gap: var(--spacing-xs);
-  padding: 2px 0;
-  font-size: 0.6rem;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-xs) 0;
+  font-size: 0.7rem;
   border-bottom: 1px solid var(--border-color);
+  min-height: 20px;
+  align-items: center;
 }
 
 .log-time {
