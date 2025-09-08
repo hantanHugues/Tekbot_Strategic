@@ -131,36 +131,22 @@
               <button class="btn btn-outline btn-sm" @click="runFullDiagnostic">Full Check</button>
             </div>
           </div>
-          <div class="diagnostic-grid">
-            <div 
-              v-for="component in systemComponents.slice(0, 4)" 
-              :key="component.name"
-              class="diagnostic-item"
-              :class="component.status"
-              @click="pingComponent(component)"
-            >
-              <div class="diagnostic-icon">{{ component.icon }}</div>
-              <div class="diagnostic-info">
-                <div class="diagnostic-name">{{ component.name.split(' ')[0] }}</div>
-                <div class="diagnostic-latency" v-if="component.latency">{{ component.latency }}ms</div>
+          <div class="diagnostic-content">
+            <div class="diagnostic-grid">
+              <div 
+                v-for="component in systemComponents" 
+                :key="component.name"
+                class="diagnostic-item"
+                :class="component.status"
+                @click="pingComponent(component)"
+              >
+                <div class="diagnostic-icon">{{ component.icon }}</div>
+                <div class="diagnostic-info">
+                  <div class="diagnostic-name">{{ component.name.split(' ')[0] }}</div>
+                  <div class="diagnostic-latency" v-if="component.latency">{{ component.latency }}ms</div>
+                </div>
+                <div class="diagnostic-indicator" :class="component.status"></div>
               </div>
-              <div class="diagnostic-indicator" :class="component.status"></div>
-            </div>
-          </div>
-          <div class="diagnostic-grid">
-            <div 
-              v-for="component in systemComponents.slice(4)" 
-              :key="component.name"
-              class="diagnostic-item"
-              :class="component.status"
-              @click="pingComponent(component)"
-            >
-              <div class="diagnostic-icon">{{ component.icon }}</div>
-              <div class="diagnostic-info">
-                <div class="diagnostic-name">{{ component.name.split(' ')[0] }}</div>
-                <div class="diagnostic-latency" v-if="component.latency">{{ component.latency }}ms</div>
-              </div>
-              <div class="diagnostic-indicator" :class="component.status"></div>
             </div>
           </div>
         </div>
@@ -926,10 +912,11 @@ export default {
 /* Layout principal optimisé */
 .supervision-layout {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 400px;
   gap: var(--spacing-lg);
   flex: 1;
   min-height: 0;
+  height: 100%;
 }
 
 .main-workspace {
@@ -937,36 +924,41 @@ export default {
   flex-direction: column;
   gap: var(--spacing-lg);
   min-height: 0;
+  height: 100%;
 }
 
 .right-sidebar {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto;
   gap: var(--spacing-md);
+  height: 100%;
   min-height: 0;
-  overflow-y: auto;
-  padding-right: var(--spacing-xs);
 }
 
 /* RViz Container - optimisé */
 .rviz-container {
-  flex: 2;
-  min-height: 450px;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Terminal compact */
 .terminal-compact {
-  height: 250px;
+  height: 280px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .terminal-display-compact {
   display: flex;
   flex-direction: column;
-  height: 200px;
+  flex: 1;
   background: #1a1a1a;
   border-radius: var(--border-radius-md);
   overflow: hidden;
+  min-height: 0;
 }
 
 .terminal-output-compact {
@@ -1005,7 +997,9 @@ export default {
 
 /* Diagnostic compact */
 .diagnostic-compact {
-  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .diagnostic-actions {
@@ -1013,11 +1007,18 @@ export default {
   gap: var(--spacing-sm);
 }
 
+.diagnostic-content {
+  flex: 1;
+  padding: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+}
+
 .diagnostic-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-sm);
-  padding: var(--spacing-md);
+  grid-auto-rows: minmax(45px, auto);
 }
 
 .diagnostic-item {
@@ -1090,7 +1091,9 @@ export default {
 
 /* Nœuds compacts */
 .nodes-compact {
-  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .nodes-list-compact {
@@ -1098,6 +1101,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-sm);
+  flex: 1;
+  min-height: 0;
 }
 
 .node-item-compact {
@@ -1141,7 +1146,9 @@ export default {
 
 /* Actions compactes */
 .actions-compact {
-  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .actions-grid-compact {
@@ -1149,6 +1156,7 @@ export default {
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
+  flex: 1;
 }
 
 .action-btn {
@@ -1186,7 +1194,9 @@ export default {
 
 /* Métriques compactes */
 .metrics-compact {
-  min-height: 140px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .metrics-grid {
@@ -1194,6 +1204,7 @@ export default {
   grid-template-columns: 1fr 1fr;
   gap: var(--spacing-sm);
   padding: var(--spacing-md);
+  flex: 1;
 }
 
 .metric-compact {
@@ -1230,13 +1241,16 @@ export default {
 
 /* Logs compacts */
 .logs-compact {
-  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .logs-display-compact {
   padding: var(--spacing-md);
-  max-height: 120px;
+  flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .log-entry-compact {
